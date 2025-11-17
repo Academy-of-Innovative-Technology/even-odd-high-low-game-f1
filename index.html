@@ -1,48 +1,193 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Number Guessing Game 🎲</title>
+
 <style>
- 
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #3498db, #8e44ad, #e67e22);
+        background-size: 300% 300%;
+        animation: gradient 10s ease infinite;
+        text-align: center;
+        padding: 20px;
+        color: white;
+    }
+
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .container {
+        max-width: 700px;
+        margin: auto;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 12px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    }
+
+    input {
+        padding: 10px;
+        width: 60%;
+        border-radius: 8px;
+        border: none;
+        margin-bottom: 10px;
+    }
+
+    button {
+        padding: 10px 15px;
+        margin: 5px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        background: #fff;
+    }
+
+    #hint, #stats {
+        margin-top: 15px;
+        font-size: 18px;
+    }
+
+    .images {
+        margin-top: 15px;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .images img {
+        width: 80px;
+        height: 80px;
+        border-radius: 10px;
+        border: 3px solid white;
+    }
 </style>
 </head>
+
 <body>
 
-  <main class="container">
- 
-  </main>
-      <button id="generateButton">Generate Random Number</button>
-    <p id="randonNbrBtn"></p>
-
-    <button id="submitGuess">Submit Guess</button>
-    <p id="submitGuessBtn"></p>
-
-    <button id="resetButton">Reset Guesses</button>
-    <p id="resetGuessesBtn"></p>
-
-    <button id="giveUp">Give up</button>
-    <p id="giveUpBtn"></p>
-
-
+<main class="container">
 <h1>🎯 Guess The Number Game 🎯</h1>
+
 <div id="game-container">
-    <p>Guess a number between 0 and 1000!</p>
+    <p>Guess a number between <strong>0 and 1000</strong>!</p>
+
     <input type="number" id="guessInput" placeholder="Enter your guess">
+
     <div>
         <button id="guessBtn">Guess</button>
         <button id="retryBtn">Retry</button>
         <button id="quitBtn">Quit</button>
     </div>
+
     <div id="hint"></div>
     <div id="stats"></div>
-</div>
+
+   
+
+</main>
+
+<script>
+
+let stats = JSON.parse(localStorage.getItem("stats")) || {
+    wins: 0,
+    losses: 0,
+    rounds: 0,
+    streak: 0
+};
+
+let roundData = {
+    number: Math.floor(Math.random() * 1001),
+    attempts: 0,
+    maxRetries: 10,
+    retries: 0
+};
 
 
+function updateStats() {
+    document.getElementById("stats").innerHTML = `
+        <p>Wins: ${stats.wins} | Losses: ${stats.losses}</p>
+        <p>Rounds: ${stats.rounds} | Streak: ${stats.streak}</p>
+        <p>Retries This Round: ${roundData.retries}</p>
+        <p>Attempts: ${roundData.attempts}</p>
+    `;
+}
+
+function saveStats() {
+    localStorage.setItem("stats", JSON.stringify(stats));
+}
 
 
+function newRound() {
+    roundData.number = Math.floor(Math.random() * 1001);
+    roundData.attempts = 0;
+    roundData.retries = 0;
+    stats.rounds++;
+    saveStats();
+    updateStats();
+    document.getElementById("hint").innerHTML = "New round started!";
+}
+
+newRound();
+
+document.getElementById("guessBtn").onclick = function() {
+    let guess = parseInt(document.getElementById("guessInput").value);
+
+    if (isNaN(guess)) {
+        alert("Enter a valid number!");
+        return;
+    }
+
+    roundData.attempts++;
+
+    let hint = "";
+    if (guess > roundData.number) hint += "Too HIGH! ";
+    if (guess < roundData.number) hint += "Too LOW! ";
+    hint += (roundData.number % 2 === 0) ? "The number is EVEN." : "The number is ODD.";
+
+    if (guess === roundData.number) {
+        document.getElementById("hint").innerHTML = `🎉 Correct! The number was ${roundData.number}.`;
+        stats.wins++;
+        stats.streak++;
+        saveStats();
+        updateStats();
+        newRound();
+        return;
+    }
+
+    if (roundData.attempts >= roundData.maxRetries) {
+        document.getElementById("hint").innerHTML = `❌ You lost! The number was ${roundData.number}.`;
+        stats.losses++;
+        stats.streak = 0;
+        saveStats();
+    } else {
+        document.getElementById("hint").innerHTML = hint;
+    }
+
+    updateStats();
+};
+
+document.getElementById("retryBtn").onclick = function() {
+    roundData.retries++;
+    roundData.attempts = 0;
+    roundData.number = Math.floor(Math.random() * 1001);
+    document.getElementById("hint").innerHTML = "🔁 New number generated!";
+    updateStats();
+};
+
+document.getElementById("quitBtn").onclick = function() {
+    localStorage.clear();
+    alert("Game stats cleared. Redirecting...");
+    window.location.href = "https://aoit.org"; // <-- your AOIT link
+};
+</script>
 
 </body>
 </html>
